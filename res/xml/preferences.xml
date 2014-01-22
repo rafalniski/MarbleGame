@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory 
+        android:title="User account"
+        android:key="pref_key_storage_settings">
+        <CheckBoxPreference
+            android:key="pref_key_auto_delete"
+            android:summary="Use GPU acceleration"
+            android:title="Usage of GPU acceleration during rendering map"
+            android:defaultValue="false"/>
+        <Preference 
+            android:key="Store passwords"
+            android:dependency="pref_key_auto_delete"
+            android:summary="Passwords"
+            android:title="title" />
+        <Preference 
+            android:key="pref_key_mms_delete_limit"
+            android:dependency="pref_key_auto_delete"
+            android:summary="Limit"
+            android:title="limits" />
+    </PreferenceCategory>
+    ...
+</PreferenceScreen>
