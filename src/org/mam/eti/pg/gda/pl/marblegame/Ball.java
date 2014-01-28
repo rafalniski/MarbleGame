@@ -6,6 +6,8 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 public class Ball extends Sprite {
     private int mWeight;
+    public static final int BALL_WIDTH = 70;
+    public static final int BALL_HEIGHT = 70;
     private Sprite mBall;
     private float x;
     private float y;
@@ -37,7 +39,7 @@ public class Ball extends Sprite {
 	public boolean isX() {
 		return this.isX;
 	}
-
+	
 	public Ball(int color,float x, float y, float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager) {
         super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
         this.x = x;

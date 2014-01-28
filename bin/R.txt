@@ -5,6 +5,7 @@ int drawable clock 0x7f020003
 int drawable ic_launcher 0x7f020004
 int drawable logo 0x7f020005
 int drawable star 0x7f020006
+int drawable star_yellow 0x7f020007
 int id imageView1 0x7f060000
 int id new_game 0x7f060001
 int id quit 0x7f060003
