@@ -4,6 +4,7 @@ import android.graphics.Point;
 import android.util.Log;
 
 public class Grid {
+	
 	public Point getGridCoordinates(int x, int y, int ballWidth, int ballHeigth) {
 
 		int gridX = (30 + ballWidth) * x;
@@ -20,15 +21,15 @@ public class Grid {
 		return point;
 	}
 	public int[][] getPathMap(BubblesGrid bubbles) {
-		int map[][] = new int[10][10];
-		for (int i = 0; i < 10; i++) {
+		int map[][] = new int[BubblesGrid.GRID_COLUMNS][BubblesGrid.GRID_ROWS];
+		for (int i = 0; i < BubblesGrid.GRID_COLUMNS; i++) {
 			map[0][i] = 1;
-			map[9][i] = 1;
+			map[BubblesGrid.GRID_ROWS-1][i] = 1;
 			map[i][0] = 1;
-			map[i][9] = 1;
+			map[i][BubblesGrid.GRID_ROWS-1] = 1;
 		}
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < 8; j++) {
+		for (int i = 0; i < BubblesGrid.GRID_COLUMNS-1; i++) {
+			for (int j = 0; j < BubblesGrid.GRID_ROWS-1; j++) {
 				if (bubbles.isBubblesNull(i, j))
 					map[j + 1][i + 1] = 0;
 				else

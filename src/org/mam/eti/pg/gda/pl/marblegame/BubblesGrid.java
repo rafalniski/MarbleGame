@@ -10,8 +10,15 @@ import android.util.Log;
 
 public class BubblesGrid {
 	private Ball[][] bubbles;
-	public BubblesGrid(int x, int y) {
-		this.bubbles = new Ball[x][y];
+	public static final int BALLS_AT_THE_BEGGINING = 20;
+	public static final int HOW_MANY_NEW_BALLS = 3;
+	/* NUMBER OF ROWS AND COLUMNS SHOULD ALWAYS BE EQUAL AND +1 MORE THAN ACTUAL GRID */
+	public static final int GRID_ROWS = 9;
+	public static final int GRID_COLUMNS = 9;
+	private int currentBallColor;
+
+	public BubblesGrid() {
+		this.bubbles = new Ball[GRID_COLUMNS][GRID_ROWS];
 	}
 	public void setBubbles(int x, int y, Ball value) {
 		bubbles[x][y] = value;
@@ -32,8 +39,8 @@ public class BubblesGrid {
 	public void detachedRandBalls() {
 		int randColor = MathUtilities.getRandInt(6);
 		Log.e("detach", "Wywolanie programu!!!");
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < 8; j++) {
+		for (int i = 0; i < GRID_COLUMNS; i++) {
+			for (int j = 0; j < GRID_ROWS; j++) {
 				if (bubbles[i][j] != null
 						&& (bubbles[i][j].getBallColor() == randColor || bubbles[i][j]
 								.getBallColor() == 8)) {
@@ -48,8 +55,8 @@ public class BubblesGrid {
 	public boolean isBubblesFull() {
 		boolean isBubblesFull = false;
 		int howManyEmptySpaces = 0;
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < 8; j++) {
+		for (int i = 0; i < GRID_COLUMNS; i++) {
+			for (int j = 0; j < GRID_ROWS; j++) {
 				if (bubbles[i][j] == null)
 					howManyEmptySpaces++;
 			}
@@ -61,12 +68,11 @@ public class BubblesGrid {
 	
 	
 	public boolean checkPattern(int ballColor, Achievement stats) {
-
-		
+		Log.i("combo", "combo counter = "+ stats.getComboAchievementCounter());
 		// wyszukiwanie w kolumnach
 		boolean czyZnaleziono = false;
-		for (int h = 0; h < 8; h++) {
-			for (int i = 0; i < 8 - 5 + 1; i++) {
+		for (int h = 0; h < GRID_COLUMNS; h++) {
+			for (int i = 0; i < GRID_ROWS - 5 + 1; i++) {
 				int j = 1;
 				if (bubbles[h][i + j - 1] != null) {
 					while (j <= 5
@@ -92,9 +98,7 @@ public class BubblesGrid {
 								i++;
 							}
 							czyZnaleziono = true;
-							stats.setScore(50);
-							stats.setComboAchievementCounter(1);
-							
+							stats.setScore((stats.getScore()+ 50));							
 							return true;
 						}
 
@@ -103,8 +107,8 @@ public class BubblesGrid {
 			}
 		}
 		// wyszukiwanie w wierszach
-		for (int h = 0; h < 8; h++) {
-			for (int i = 0; i < 8 - 5 + 1; i++) {
+		for (int h = 0; h < GRID_COLUMNS; h++) {
+			for (int i = 0; i < GRID_ROWS - 5 + 1; i++) {
 				int j = 1;
 				if (bubbles[i + j - 1][h] != null) {
 					while (j <= 5
@@ -129,8 +133,7 @@ public class BubblesGrid {
 								i++;
 							}
 							czyZnaleziono = true;
-							stats.setScore(50);
-							stats.setComboAchievementCounter(1);
+							stats.setScore((stats.getScore()+ 50));
 							return true;
 						}
 
@@ -139,8 +142,8 @@ public class BubblesGrid {
 			}
 		}
 		// wyszukiwanie po przekatnej w lewo
-		for (int h = 0; h < 8; h++) {
-			for (int i = 0; i < 8 - 5 + 1; i++) {
+		for (int h = 0; h < GRID_COLUMNS-1; h++) {
+			for (int i = 0; i < GRID_ROWS-1 - 5 + 1; i++) {
 				int j = 1;
 				if (bubbles[i + j - 1][h + j - 1] != null) {
 					while (j <= 5
@@ -156,8 +159,7 @@ public class BubblesGrid {
 								h++;
 							}
 							czyZnaleziono = true;
-							stats.setScore(50);
-							stats.setComboAchievementCounter(1);
+							stats.setScore((stats.getScore()+ 50));
 							return true;
 						}
 
@@ -166,8 +168,8 @@ public class BubblesGrid {
 			}
 		}
 		// wyszukiwanie po przekatnej w prawo
-		for (int h = 0; h < 8 - 5 + 1; h++) {
-			for (int i = 0; i < 8; i++) {
+		for (int h = 0; h < GRID_COLUMNS - 5 + 1; h++) {
+			for (int i = 0; i < GRID_ROWS; i++) {
 				int j = 1;
 				int w = -1;
 				if (bubbles[i + w + 1][h + j - 1] != null) {
@@ -187,27 +189,31 @@ public class BubblesGrid {
 								h++;
 							}
 							czyZnaleziono = true;
-							stats.setScore(50);
-							stats.setComboAchievementCounter(1);
+							stats.setScore((stats.getScore()+ 50));
 							return true;
 						}
 					}
 				}
 			}
 		}
-		stats.resetCombo();
 		return false;
 	}
 	
 	public void resetBubbles() {
-		for (int i = 0; i < 10; i++) {
-			for (int j = 0; j < 10; j++) {
+		for (int i = 0; i < GRID_COLUMNS ; i++) {
+			for (int j = 0; j < GRID_ROWS; j++) {
 				if (bubbles[i][j] != null) {
 					bubbles[i][j].detachSelf();
 					bubbles[i][j] = null;
 				}
 			}
 		}
+	}
+	public int getCurrentBallColor() {
+		return currentBallColor;
+	}
+	public void setCurrentBallColor(int currentBallColor) {
+		this.currentBallColor = currentBallColor;
 	}
 	
 }

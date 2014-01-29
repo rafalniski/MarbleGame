@@ -3,7 +3,7 @@ package org.mam.eti.pg.gda.pl.marblegame;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PathFinder extends AStar<PathFinder.Node>
+public class PathFinder
 {
 	private int[][] map;
 	private Node endPoint;
