@@ -55,8 +55,8 @@ public class BubblesGrid {
 	public boolean isBubblesFull() {
 		boolean isBubblesFull = false;
 		int howManyEmptySpaces = 0;
-		for (int i = 0; i < GRID_COLUMNS; i++) {
-			for (int j = 0; j < GRID_ROWS; j++) {
+		for (int i = 0; i < GRID_COLUMNS-1; i++) {
+			for (int j = 0; j < GRID_ROWS-1; j++) {
 				if (bubbles[i][j] == null)
 					howManyEmptySpaces++;
 			}

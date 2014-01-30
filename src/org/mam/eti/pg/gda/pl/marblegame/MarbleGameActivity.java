@@ -59,69 +59,62 @@ import android.widget.Toast;
 
 public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		IOnSceneTouchListener {
+	
+	/* Game screen variables */
 	private static final int CAMERA_WIDTH = 1280;
 	private static final int CAMERA_HEIGHT = 800;
-	private BubblesGrid bubbles;
-	private Ball bubbleToMove;
-	private Sprite grid, marked, starS, clockS;
-	private PathModifier mPathModifier;
-	private IPathModifierListener mIPathModifierListener;
-	private StrokeFont mStrokeFont;
-	private ITexture fontTexture;
-	private Text textStroke, textStrokeNextBalls;
-	private Ball[] nextBalls = new Ball[BubblesGrid.HOW_MANY_NEW_BALLS];
-	private Ball[] nextBallsShow = new Ball[BubblesGrid.HOW_MANY_NEW_BALLS];
-	private boolean isGameOver = false;
-	private Music moveMusic;
-	private Music scoreMusic;
-	private Music failMusic;
-	private Music gameOverMusic;
-	private Grid gameGrid;
-	private Text textStrokeAchievements;
 	
+	/* Helper classes objects */
+	private BubblesGrid bubbles;
+	private Grid gameGrid;
+	private Achievement stats;
+	private Ball bubbleToMove;
+	private Ball[] nextBalls, nextBallsShow;
+	private Scene scene;
+	
+	/* Game graphics and music */
+	private Sprite starS, clockS, starYS;
+	
+	/* Helper booleans and counters */
 	private static int isColorUsed[] = new int[8];
 	private int howManyMoves = 0;
-	private Sprite starYS;
 	private boolean achiveColors, achiveMoves, achiveCombo;
-	private Achievement stats;
-	private ButtonSprite restartButton;
-	private Sprite backgroundSprite;
-	private SpriteBackground spriteBackground;
-	private Scene scene = new Scene();
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		EngineOptions en = new EngineOptions(true,
 				ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(
-						CAMERA_WIDTH, CAMERA_HEIGHT), camera);
+						CAMERA_WIDTH,CAMERA_HEIGHT), camera);
 		en.getAudioOptions().setNeedsMusic(true);
 		return en;
 	}
 	
 	@Override
 	protected void onCreateResources() {
-		this.initTexturesAndSprites();
-		this.initSounds();
+		TextureRegion.initTextures(this);
+		MusicHelper.initSounds(mEngine, this);
 	}
 	
 	@Override
 	protected Scene onCreateScene() {
-		backgroundSprite =  new Sprite(0, 0, TextureRegion.mBack, getVertexBufferObjectManager());
-		spriteBackground = 	new SpriteBackground(backgroundSprite);
-		restartButton = 	new ButtonSprite(1150, 750, TextureRegion.mButton, getVertexBufferObjectManager());
 		
-		scene.setBackground(spriteBackground);
-		scene.attachChild(marked);
-		scene.attachChild(grid);
-		scene.attachChild(textStroke);
-		scene.attachChild(textStrokeAchievements);
-		scene.attachChild(textStrokeNextBalls);
-		scene.attachChild(restartButton);
+		TextureRegion.initSprites(this);
+		scene = new Scene();
+		scene.setBackground(TextureRegion.spriteBackground);
+		scene.attachChild(TextureRegion.marked);
+		scene.attachChild(TextureRegion.grid);
+		scene.attachChild(TextureRegion.textStroke);
+		scene.attachChild(TextureRegion.textStrokeAchievements);
+		scene.attachChild(TextureRegion.textStrokeNextBalls);
+		scene.attachChild(TextureRegion.restartButton);
 		
-		bubbles = new BubblesGrid();
-		stats = new Achievement();
-		gameGrid = new Grid();
+		bubbles 		= new BubblesGrid();
+		stats 			= new Achievement();
+		gameGrid 		= new Grid();
+		nextBalls 		= new Ball[BubblesGrid.HOW_MANY_NEW_BALLS];
+		nextBallsShow 	= new Ball[BubblesGrid.HOW_MANY_NEW_BALLS];
+		
 		initAchievements(scene);
 		initScene();
 		
@@ -130,23 +123,8 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		
 		return scene;
 	}
-	private void initSounds() {
-		try {
-			failMusic = MusicFactory.createMusicFromAsset(
-					mEngine.getMusicManager(), this, "snd/fail.mp3");
-			moveMusic = MusicFactory.createMusicFromAsset(
-					mEngine.getMusicManager(), this, "snd/moveMusic.wav");
-			scoreMusic = MusicFactory.createMusicFromAsset(
-					mEngine.getMusicManager(), this, "snd/scoreMusic.mp3");
-			gameOverMusic = MusicFactory.createMusicFromAsset(
-					mEngine.getMusicManager(), this,
-					"snd/gameOverMusic.wav");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
-
+	
 	@Override
 	public boolean onSceneTouchEvent(Scene scene, TouchEvent pSceneTouchEvent) {
 		int myEventAction = pSceneTouchEvent.getAction();
@@ -157,205 +135,12 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		}
 		return true;
 	}
-
-	
 	
 	private void loadPreferences() {
 		SharedPreferences prefs = getSharedPreferences("myPrefs", MODE_PRIVATE);
 		achiveColors = prefs.getBoolean("achiveColors", false);
 	}
 	
-	private void initTexturesAndSprites() {
-		try {
-			
-			ITexture strokeFontTexture = new BitmapTextureAtlas(
-					this.getTextureManager(), 256, 512, TextureOptions.BILINEAR);
-			this.mStrokeFont = new StrokeFont(this.getFontManager(),
-					strokeFontTexture, Typeface.create(Typeface.DEFAULT,
-							Typeface.BOLD), 64, true, Color.BLACK, 2,
-					Color.WHITE);
-			this.mStrokeFont.load();
-			
-			textStroke = new Text(850, 20, this.mStrokeFont,
-					"Score\n" + "0", 3000,
-					this.getVertexBufferObjectManager());
-			textStrokeAchievements = new Text(850, 190, this.mStrokeFont,
-					"Achievements\n", 3000, this.getVertexBufferObjectManager());
-
-			textStrokeNextBalls = new Text(850, 380, this.mStrokeFont,
-					"Next marbles", 3000, this.getVertexBufferObjectManager());
-			
-			ITexture gridTexture = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/a-grid.png");
-						}
-					});
-			gridTexture.load();
-			TextureRegion.mGrid = TextureRegionFactory.extractFromTexture(gridTexture);
-			grid = new Sprite(0, 0, TextureRegion.mGrid, getVertexBufferObjectManager());
-			
-			ITexture starYellow = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/star_yellow.png");
-						}
-					});
-			starYellow.load();
-			TextureRegion.mStarYellow = TextureRegionFactory.extractFromTexture(starYellow);
-
-			ITexture back = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/back.jpg");
-						}
-					});
-			back.load();
-			TextureRegion.mBack = TextureRegionFactory.extractFromTexture(back);
-			
-			ITexture markedTexture = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/marked.png");
-						}
-					});
-			markedTexture.load();
-			TextureRegion.mMarked = TextureRegionFactory.extractFromTexture(markedTexture);
-			marked = new Sprite(0, 0, TextureRegion.mMarked, getVertexBufferObjectManager());
-			marked.setVisible(false);
-			
-			ITexture button = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/buttonrestart.png");
-						}
-					});
-			button.load();
-			TextureRegion.mButton = TextureRegionFactory.extractFromTexture(button);
-
-			ITexture ballBlue = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/ballblue.png");
-						}
-					});
-			ballBlue.load();
-			TextureRegion.mBallBlue = TextureRegionFactory.extractFromTexture(ballBlue);
-			
-			ITexture ballGrey = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/ballgrey.png");
-						}
-					});
-			ballGrey.load();
-			TextureRegion.mBallGrey = TextureRegionFactory.extractFromTexture(ballGrey);
-			
-			ITexture ballGreen = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/ballgreen.png");
-						}
-					});
-			ballGreen.load();
-			TextureRegion.mBallGreen = TextureRegionFactory.extractFromTexture(ballGreen);
-			
-			ITexture ballPurple = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/ballpurple.png");
-						}
-					});
-			ballPurple.load();
-			TextureRegion.mBallPurple = TextureRegionFactory.extractFromTexture(ballPurple);
-			
-			ITexture ballRed = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/ballred.png");
-
-						}
-					});
-			ballRed.load();
-			TextureRegion.mBallRed = TextureRegionFactory.extractFromTexture(ballRed);
-			
-			ITexture ballYellow = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/ballyellow.png");
-						}
-					});
-			ballYellow.load();
-			TextureRegion.mBallYellow = TextureRegionFactory.extractFromTexture(ballYellow);
-			
-			ITexture ballX = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/ballx.png");
-						}
-					});
-			ballX.load();
-			TextureRegion.mBallX = TextureRegionFactory.extractFromTexture(ballX);
-			
-			ITexture ballAll = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/ballall.png");
-						}
-					});
-			ballAll.load();
-			TextureRegion.mBallAll = TextureRegionFactory.extractFromTexture(ballAll);
-			
-			ITexture ballRand = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/ballrand.png");
-						}
-					});
-			ballRand.load();
-			TextureRegion.mBallRand = TextureRegionFactory.extractFromTexture(ballRand);
-			
-			ITexture star = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/star.png");
-						}
-					});
-			star.load();
-			TextureRegion.mStarAchive = TextureRegionFactory.extractFromTexture(star);
-
-			ITexture clock = new BitmapTexture(this.getTextureManager(),
-					new IInputStreamOpener() {
-						@Override
-						public InputStream open() throws IOException {
-							return getAssets().open("gfx/clock.png");
-						}
-					});
-			clock.load();
-			TextureRegion.mClockAchive = TextureRegionFactory.extractFromTexture(clock);
-			
-		} catch(IOException e) {
-			Log.e(Logger.LOG_TEXTURE_LOAD_ERROR, 
-						"Error during loading textures, check if texture file exists");
-			e.printStackTrace();
-			
-		}
-	}
 	private void initAchievements(Scene scene) {
 		SharedPreferences prefs = getSharedPreferences("myPrefs", MODE_PRIVATE);
 		achiveColors = prefs.getBoolean("achiveColors", false);
@@ -406,13 +191,12 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 			bubbles.detachedRandBalls();
 			gotRandColor = false;
 		}
-		
-		loadPreferences();
 		stats.setScore(0);
 		howManyMoves = 0;
 		for (int i = 0; i < 8; i++)
 			isColorUsed[i] = 0;
-		textStroke.setText("Score\n" + stats.getScore());
+		TextureRegion.textStroke.setText("Score\n" + stats.getScore());
+		TextureRegion.textStrokeNextBalls.setText("Next marbles");
 		this.generateNextBalls(scene);
 	}
 
@@ -424,6 +208,10 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 			if (colorx == true) {
 				Log.e("ss", "Jestem sztoska X.");
 			}
+			// always detach current, before generating new one so it 
+			// won't get at the top of the "stack"
+			if(this.nextBallsShow[generatedBalls] != null)
+				this.nextBallsShow[generatedBalls].detachSelf();
 			this.nextBallsShow[generatedBalls] = new Ball(colorx,
 					bubbles.getCurrentBallColor() , 0, 0, 850, 500 + (100 * generatedBalls),
 					colorRegion, getVertexBufferObjectManager());
@@ -457,12 +245,12 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 				boolean checkResult = bubbles.checkPattern(
 						bubbles.getBubble(x,y).getBallColor(), stats);
 				if(checkResult == true) {
-					scoreMusic.play();
+					MusicHelper.scoreMusic.play();
 					stats.setComboAchievementCounter(1);
 				} else {
 					stats.resetCombo();
 				}
-				textStroke.setText("Score\n" + stats.getScore());
+				TextureRegion.textStroke.setText("Score\n" + stats.getScore());
 				if (colorIndex == 8)
 					bubbles.detachedRandBalls();
 
@@ -583,6 +371,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 	private void resetGame() {
 		bubbles.resetBubbles();
 		initScene();
+		TextureRegion.marked.setVisible(false);
 		stats.setScore(0);
 	}
 
@@ -602,22 +391,22 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 																			// koordynaty
 																			// siatki
 			// oznaczamy odpowiednia grafiką zaznaczony babelek
-			if (marked.isVisible() == false) {
-				marked.setPosition(gridXY.x, gridXY.y);
-				marked.setVisible(true);
+			if (TextureRegion.marked.isVisible() == false) {
+				TextureRegion.marked.setPosition(gridXY.x, gridXY.y);
+				TextureRegion.marked.setVisible(true);
 			} else {
-				marked.setPosition(gridXY.x, gridXY.y);
+				TextureRegion.marked.setPosition(gridXY.x, gridXY.y);
 			}
 		} else if (bubbleToMove != null && bubbleToMove.isX() == true) {
 			// nic nie robomy kliknieta nieprzesuwalną kulkę.
-		} else if (marked.isVisible() == false) {
+		} else if (TextureRegion.marked.isVisible() == false) {
 			// nic nie rob kliknieto puste pole
 		}
 
 		else { // klikniete zostalo puste pole - przenosimy tam babelek
 
-			if (marked.isVisible() == true && bubbles.isBubblesFull() == false) {
-				marked.setVisible(false); // wylaczamy ozaczenie klikniecia
+			if (TextureRegion.marked.isVisible() == true && bubbles.isBubblesFull() == false) {
+				TextureRegion.marked.setVisible(false); // wylaczamy ozaczenie klikniecia
 				// dostajemy koordynaty siatki
 				isColorUsed[bubbleToMove.getBallColor()] = 1;
 				final int XcurrentBall = (int) bubbleToMove.getX();
@@ -637,7 +426,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 				List<Node> nodes = finder.solve(startPoint, endPoint);
 				Path path = null;
 				if (nodes != null) {
-					marked.setVisible(false); // wylaczamy ozaczenie klikniecia
+					TextureRegion.marked.setVisible(false); // wylaczamy ozaczenie klikniecia
 
 					int length = nodes != null ? nodes.size() : 2;
 					path = new Path(length != 0 ? length : 2);
@@ -651,12 +440,12 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 				howManyMoves++;
 				int lenght = nodes != null ? nodes.size() : 2;
 				if (path == null) {
-					failMusic.play();
+					MusicHelper.failMusic.play();
 					return;
 				}
 				PathModifier mPathModifier = new PathModifier(
-						path.getLength() / 400, path); // wyrownanie predkosci
-				mIPathModifierListener = new IPathModifierListener() {
+						path.getLength() / 800, path); // wyrownanie predkosci
+				IPathModifierListener mIPathModifierListener = new IPathModifierListener() {
 					@Override
 					public void onPathStarted(final PathModifier pPathModifier,
 							final IEntity pEntity) {
@@ -694,12 +483,12 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 								boolean checkResult = bubbles.checkPattern(
 										bubbles.getBubble(bubbleXY.x, bubbleXY.y).getBallColor(), stats);
 								if(checkResult == true) {
-									scoreMusic.play();
+									MusicHelper.scoreMusic.play();
 									stats.setComboAchievementCounter(1);
 								} else {
 									stats.resetCombo();
 								}
-								textStroke.setText("Score\n" + stats.getScore());
+								TextureRegion.textStroke.setText("Score\n" + stats.getScore());
 								checkAchivements();
 								addGeneratedBalls(getEngine().getScene());
 								generateNextBalls(getEngine().getScene());
@@ -712,19 +501,18 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 				mPathModifier.setAutoUnregisterWhenFinished(true);
 				bubbles.getBubble(XcurrentBall, YCurrentBall).registerEntityModifier(mPathModifier);
 
-				moveMusic.play();
+				MusicHelper.moveMusic.play();
 
 			} else {
-				textStroke.setText("Final Score\n" + stats.getScore());
-				if (!isGameOver) {
-					for (int i = 0; i < 3; i++) {
-						this.nextBallsShow[i].detachSelf();
-						this.nextBallsShow[i] = null;
-						this.textStrokeNextBalls.setText("");
+				TextureRegion.textStroke.setText("Final Score\n" + stats.getScore());
+					for (int i = 0; i < bubbles.HOW_MANY_NEW_BALLS; i++) {
+						if(this.nextBallsShow[i] != null) {
+							this.nextBallsShow[i].detachSelf();
+							this.nextBallsShow[i] = null;
+							TextureRegion.textStrokeNextBalls.setText("");
+						}
 					}
-					gameOverMusic.play();
-					isGameOver = true;
-				}
+					MusicHelper.gameOverMusic.play();
 			}
 
 		}
