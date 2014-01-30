@@ -196,6 +196,7 @@ public class NewPathFinder {
 		}
 		Log.i(TAG, points);
 	}
+	
 	private static void cleanUpQueue(LinkedList<Point> queue) {
 		for (int i = 0; i < queue.size(); i++) {
 			Point iteratedPoint = queue.get(i);

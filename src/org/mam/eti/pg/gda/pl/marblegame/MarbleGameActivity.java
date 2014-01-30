@@ -75,9 +75,9 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		scene.attachChild(TextureRegion.textStrokeNextBalls);
 		scene.attachChild(TextureRegion.restartButton);
 		
-		bubbles 		= new BubblesGrid();
-		stats 			= new Achievement();
-		gameGrid 		= new Grid();
+		bubbles = new BubblesGrid();
+		stats = new Achievement();
+		gameGrid = new Grid();
 		
 		initAchievements(scene);
 		initScene();
@@ -99,6 +99,12 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		bubbles.generateNextBalls(scene, this);
 	}
 	
+	private void resetGame() {
+		bubbles.resetBubbles();
+		initScene();
+		TextureRegion.marked.setVisible(false);
+		stats.setScore(0);
+	}
 	
 	@Override
 	public boolean onSceneTouchEvent(Scene scene, TouchEvent pSceneTouchEvent) {
@@ -109,6 +115,46 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 			break;
 		}
 		return true;
+	}
+	
+	private AlertDialog createDialog(String title, String message, int icon) {
+		mEngine.stop();
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(title)
+				.setMessage(message)
+				.setIcon(icon)
+				.setPositiveButton("Ok.",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int id) {
+								mEngine.start();
+
+							}
+						});
+		return builder.create();
+	}
+	
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case Achievement.ACHIEVEMENT_MOVES:
+			return createDialog(
+					"Achievement unlocked!", 
+					"Congratulations, you have done at least 10 moves!", 
+					R.drawable.star);
+		case Achievement.ACHIEVEMENT_COMBO:
+			return createDialog(
+					"Achievement unlocked!", 
+					"Congratulations, you have score 2 matches in a row!", 
+					R.drawable.clock);
+		case Achievement.ACHIEVEMENT_COLORS:
+			return createDialog(
+					"Achievement unlocked!", 
+					"Congratulations, you have used all of the balls colors!", 
+					R.drawable.star_yellow);
+		default:
+			return null;
+		}
 	}
 	
 	private void initAchievements(Scene scene) {
@@ -137,44 +183,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 	}
 
 	
-	private AlertDialog createDialog(String title, String message, int icon) {
-		mEngine.stop();
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(title)
-				.setMessage(message)
-				.setIcon(icon)
-				.setPositiveButton("Ok.",
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int id) {
-								mEngine.start();
-
-							}
-						});
-		return builder.create();
-	}
-	@Override
-	protected Dialog onCreateDialog(int id) {
-		switch (id) {
-		case Achievement.ACHIEVEMENT_MOVES:
-			return createDialog(
-					"Achievement unlocked!", 
-					"Congratulations, you have done at least 10 moves!", 
-					R.drawable.star);
-		case Achievement.ACHIEVEMENT_COMBO:
-			return createDialog(
-					"Achievement unlocked!", 
-					"Congratulations, you have score 2 matches in a row!", 
-					R.drawable.clock);
-		case Achievement.ACHIEVEMENT_COLORS:
-			return createDialog(
-					"Achievement unlocked!", 
-					"Congratulations, you have used all of the balls colors!", 
-					R.drawable.star_yellow);
-		default:
-			return null;
-		}
-	}
+	
 
 	@Override
 	protected synchronized void onResume() {
@@ -246,120 +255,114 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		}
 
 	}
-
-	private void resetGame() {
-		bubbles.resetBubbles();
-		initScene();
-		TextureRegion.marked.setVisible(false);
-		stats.setScore(0);
-	}
-
-
+	
 	private void handleGridClick(TouchEvent pSceneTouchEvent) {
-		final Point bubbleXY = gameGrid.getBubbleCoordinates(
-				pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-		// gdy w kliknietym miejscu jest babelek
+		// Getting bubble coordinates of clicked point in (x,y) format
+		final Point bubbleXY = gameGrid.getBubbleCoordinates(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
+		// There is reset button there - reset game
+		// TODO: delete this shit and implement onButtonClicked
 		if (bubbleXY.x == 12 && bubbleXY.y == 7) {
 			resetGame();
+		// Clicked outside the grid - do nothing
 		} else if (bubbleXY.x >= 8 || bubbleXY.y > 7) {
-			// kliknieta poza siatke, nic nie robimy
+		
+		// Clicked some bubble
 		} else if (!bubbles.isBubblesNull(bubbleXY.x, bubbleXY.y)) {
-			bubbleToMove = bubbles.getBubble(bubbleXY.x, bubbleXY.y); // oznaczamy, ze
-															// bedzie przesuwany
-			Point gridXY = gameGrid.getGridCoordinates(bubbleXY.x, bubbleXY.y, Ball.BALL_WIDTH, Ball.BALL_HEIGHT); // dostajemy
-																			// koordynaty
-																			// siatki
-			// oznaczamy odpowiednia grafiką zaznaczony babelek
+			// We initialize it with clicked bubble - it's going to be moved (probably)
+			bubbleToMove = bubbles.getBubble(bubbleXY.x, bubbleXY.y);
+			// Grid coordinates of clicked bubble in px x px format 
+			Point gridXY = gameGrid.getGridCoordinates(bubbleXY.x, bubbleXY.y, Ball.BALL_WIDTH, Ball.BALL_HEIGHT);
+			// We marked clicked bubble with semi-transparent sprite
 			if (TextureRegion.marked.isVisible() == false) {
 				TextureRegion.marked.setPosition(gridXY.x, gridXY.y);
 				TextureRegion.marked.setVisible(true);
-			} else {
-				TextureRegion.marked.setPosition(gridXY.x, gridXY.y);
 			}
+		// We clicked X bubble - nothing to do	
 		} else if (bubbleToMove != null && bubbleToMove.isX() == true) {
-			// nic nie robomy kliknieta nieprzesuwalną kulkę.
+		
+		// We clicked empty field and there was no bubble prefared to be moved - do nothing
 		} else if (TextureRegion.marked.isVisible() == false) {
-			// nic nie rob kliknieto puste pole
-		}
-
-		else { // klikniete zostalo puste pole - przenosimy tam babelek
-
-			if (TextureRegion.marked.isVisible() == true && bubbles.isBubblesFull() == false) {
-				TextureRegion.marked.setVisible(false); // wylaczamy ozaczenie klikniecia
-				// dostajemy koordynaty siatki
-				isColorUsed[bubbleToMove.getBallColor()] = 1;
+		
+		// We clicked empty filed, there is bubble to move and we still have free space in a grid. So, move it there:)
+		} else if (TextureRegion.marked.isVisible() == true && bubbles.isBubblesFull() == false) {
+				// Getting coordinates of ball that will be moved in format (x,y)
 				final int XcurrentBall = (int) bubbleToMove.getX();
 				final int YCurrentBall = (int) bubbleToMove.getY();
-
-				Point gridXY = gameGrid.getGridCoordinates(bubbleXY.x, bubbleXY.y,Ball.BALL_WIDTH, Ball.BALL_HEIGHT);
+				// Set marked sprite invisible, it's no sense to show it any more now
+				TextureRegion.marked.setVisible(false);
+				// Helper binary table for finding shortest path
 				final int[][] gridMap = gameGrid.getPathMap(bubbles);
+				// Getting shortest path from clicked point to bubble to move point
 				NewPathFinder finder = new NewPathFinder(gridMap);
-				NewPathFinder.Point startPoint = finder.new Point(
-						XcurrentBall + 1, YCurrentBall + 1);
-				NewPathFinder.Point endPoint = finder.new Point(bubbleXY.x + 1,
-						bubbleXY.y + 1);
+				NewPathFinder.Point startPoint = finder.new Point(XcurrentBall + 1, YCurrentBall + 1);
+				NewPathFinder.Point endPoint = finder.new Point(bubbleXY.x + 1,bubbleXY.y + 1);
 
 				List<Node> nodes = finder.solve(startPoint, endPoint);
 				Path path = null;
 				if (nodes != null) {
-					TextureRegion.marked.setVisible(false); // wylaczamy ozaczenie klikniecia
-
-					int length = nodes != null ? nodes.size() : 2;
-					path = new Path(length != 0 ? length : 2);
-					if (nodes != null) {
-						for (Node point : nodes) {
-							gridXY = gameGrid.getGridCoordinates(point.x, point.y,Ball.BALL_WIDTH, Ball.BALL_HEIGHT);
-							path.to(gridXY.x + 15, gridXY.y + 15);
-						}
+					// count how many moved we have to destination
+					int length = nodes.size();
+					path = new Path(length);
+					Point gridXY = null;
+					for (Node point : nodes) {
+						// get exact grid coordinates of all of the moves
+						gridXY = gameGrid.getGridCoordinates(point.x, point.y,Ball.BALL_WIDTH, Ball.BALL_HEIGHT);
+						path.to(gridXY.x + 15, gridXY.y + 15);
 					}
-				}
-				howManyMoves++;
-				if (path == null) {
+				// There is no path to end point, so move is impossible
+				} else {
 					MusicHelper.failMusic.play();
 					return;
 				}
-				PathModifier mPathModifier = new PathModifier(
-						path.getLength() / 800, path); // wyrownanie predkosci
+				// Increment moves achievement counter
+				howManyMoves++;
+				// Increment color achievement counter
+				isColorUsed[bubbleToMove.getBallColor()] = 1;
+				
+				// Move the ball
+				PathModifier mPathModifier = new PathModifier(path.getLength() / 800, path);
 				IPathModifierListener mIPathModifierListener = new IPathModifierListener() {
 					@Override
 					public void onPathStarted(final PathModifier pPathModifier,
-							final IEntity pEntity) {
-						Debug.d("onPathStarted");
-					}
+							final IEntity pEntity) {}
 
 					@Override
 					public void onPathWaypointStarted(
 							PathModifier pPathModifier, IEntity pEntity,
-							int pWaypointIndex) {
-						// TODO Auto-generated method stub
-
-					}
+							int pWaypointIndex) {}
 
 					@Override
 					public void onPathWaypointFinished(
 							PathModifier pPathModifier, IEntity pEntity,
-							int pWaypointIndex) {
-
-					}
+							int pWaypointIndex) {}
 
 					@Override
 					public void onPathFinished(PathModifier pPathModifier,
 							IEntity pEntity) {
+						// We finished moving the ball, so we can handle logic
 						getEngine().runOnUpdateThread(new Runnable() {
 							@Override
 							public void run() {
+								// TODO: move it to BubblesGrid
+								// Set new bubble in a clicked point
 								bubbles.setBubbles(bubbleXY.x, bubbleXY.y, bubbles.getBubble(XcurrentBall, YCurrentBall));
+								// Set its coordinates
 								bubbles.getBubble(bubbleXY.x, bubbleXY.y).setX(bubbleXY.x);
 								bubbles.getBubble(bubbleXY.x, bubbleXY.y).setY(bubbleXY.y);
+								// Bubble to move is now empty, so delete object
 								bubbles.setBubbleNull(XcurrentBall, YCurrentBall);
 								bubbleToMove = null;
+								// For every move with punished with 1 point
 								if(stats.getScore() > 0)
 									stats.setScore((stats.getScore()-1));
+								// Check if there is any pattern detected
 								boolean checkResult = bubbles.checkPattern(
 										bubbles.getBubble(bubbleXY.x, bubbleXY.y).getBallColor(), stats);
+								// If yes, play sound and increment combo achievement counter
 								if(checkResult == true) {
 									MusicHelper.scoreMusic.play();
 									stats.setComboAchievementCounter(1);
+								// If not, c-c-c-combo breaker
 								} else {
 									stats.resetCombo();
 								}
@@ -375,16 +378,13 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 				mPathModifier.setPathModifierListener(mIPathModifierListener);
 				mPathModifier.setAutoUnregisterWhenFinished(true);
 				bubbles.getBubble(XcurrentBall, YCurrentBall).registerEntityModifier(mPathModifier);
-
 				MusicHelper.moveMusic.play();
-
+			// No free space in a grid - end the game
 			} else {
-				TextureRegion.textStroke.setText("Final Score\n" + stats.getScore());
+					TextureRegion.textStroke.setText("Final Score\n" + stats.getScore());
 					bubbles.detachNextBalls();
 					MusicHelper.gameOverMusic.play();
 			}
-
-		}
 
 	}
 }
