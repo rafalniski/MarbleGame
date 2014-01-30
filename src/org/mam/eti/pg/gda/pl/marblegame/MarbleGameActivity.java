@@ -1,61 +1,29 @@
 package org.mam.eti.pg.gda.pl.marblegame;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
-import javax.microedition.khronos.opengles.GL10;
-
-import org.andengine.audio.music.Music;
-import org.andengine.audio.music.MusicFactory;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.IEntity;
-import org.andengine.entity.modifier.AlphaModifier;
-import org.andengine.entity.modifier.FadeOutModifier;
-import org.andengine.entity.modifier.IEntityModifier;
 import org.andengine.entity.modifier.PathModifier;
 import org.andengine.entity.modifier.PathModifier.IPathModifierListener;
 import org.andengine.entity.modifier.PathModifier.Path;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
-import org.andengine.entity.scene.background.Background;
-import org.andengine.entity.scene.background.SpriteBackground;
-import org.andengine.entity.sprite.ButtonSprite;
 import org.andengine.entity.sprite.Sprite;
-import org.andengine.entity.text.Text;
 import org.andengine.input.touch.TouchEvent;
-import org.andengine.opengl.font.StrokeFont;
-import org.andengine.opengl.texture.ITexture;
-import org.andengine.opengl.texture.TextureOptions;
-import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
-import org.andengine.opengl.texture.bitmap.BitmapTexture;
-import org.andengine.opengl.texture.region.ITextureRegion;
-import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
-import org.andengine.util.adt.io.in.IInputStreamOpener;
-import org.andengine.util.color.Color;
 import org.andengine.util.debug.Debug;
-import org.andengine.util.modifier.IModifier;
-import org.andengine.util.modifier.ease.EaseLinear;
 import org.mam.eti.pg.gda.pl.marblegame.PathFinder.Node;
-import org.mam.eti.pg.gda.pl.marblegame.utils.Logger;
-import org.mam.eti.pg.gda.pl.marblegame.utils.MathUtilities;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.graphics.Point;
-import android.graphics.Typeface;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		IOnSceneTouchListener {
@@ -69,10 +37,9 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 	private Grid gameGrid;
 	private Achievement stats;
 	private Ball bubbleToMove;
-	private Ball[] nextBalls, nextBallsShow;
 	private Scene scene;
 	
-	/* Game graphics and music */
+	/* Game graphics*/
 	private Sprite starS, clockS, starYS;
 	
 	/* Helper booleans and counters */
@@ -93,13 +60,12 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 	@Override
 	protected void onCreateResources() {
 		TextureRegion.initTextures(this);
+		TextureRegion.initSprites(this);
 		MusicHelper.initSounds(mEngine, this);
 	}
 	
 	@Override
 	protected Scene onCreateScene() {
-		
-		TextureRegion.initSprites(this);
 		scene = new Scene();
 		scene.setBackground(TextureRegion.spriteBackground);
 		scene.attachChild(TextureRegion.marked);
@@ -112,8 +78,6 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		bubbles 		= new BubblesGrid();
 		stats 			= new Achievement();
 		gameGrid 		= new Grid();
-		nextBalls 		= new Ball[BubblesGrid.HOW_MANY_NEW_BALLS];
-		nextBallsShow 	= new Ball[BubblesGrid.HOW_MANY_NEW_BALLS];
 		
 		initAchievements(scene);
 		initScene();
@@ -122,6 +86,17 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		scene.setTouchAreaBindingOnActionDownEnabled(true);
 		
 		return scene;
+	}
+	
+	private void initScene() {
+		bubbles.generateBallsAtTheBeggining(scene,this);
+		stats.setScore(0);
+		howManyMoves = 0;
+		for (int i = 0; i < 8; i++)
+			isColorUsed[i] = 0;
+		TextureRegion.textStroke.setText("Score\n" + stats.getScore());
+		TextureRegion.textStrokeNextBalls.setText("Next marbles");
+		bubbles.generateNextBalls(scene, this);
 	}
 	
 	
@@ -134,11 +109,6 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 			break;
 		}
 		return true;
-	}
-	
-	private void loadPreferences() {
-		SharedPreferences prefs = getSharedPreferences("myPrefs", MODE_PRIVATE);
-		achiveColors = prefs.getBoolean("achiveColors", false);
 	}
 	
 	private void initAchievements(Scene scene) {
@@ -165,98 +135,8 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 			scene.attachChild(clockS);
 		}
 	}
-	
-	private void initScene() {
-		int generatedBalls = 0;
-		boolean gotRandColor = false;
-		while (generatedBalls < BubblesGrid.BALLS_AT_THE_BEGGINING) {
-			int x = MathUtilities.getRandInt(8);
-			int y = MathUtilities.getRandInt(8);
-			if (bubbles.isBubblesNull(x, y)) {
-				ITextureRegion colorRegion = Ball.getRandBall(bubbles);
-				boolean colorx = bubbles.getCurrentBallColor() == 6 || bubbles.getCurrentBallColor()  == 8 ? true
-						: false;
-				if (bubbles.getCurrentBallColor()  == 8) {
-					gotRandColor = true;
-				}
-				Ball newBall = new Ball(colorx, bubbles.getCurrentBallColor() , x, y, 15
-						+ (30 + Ball.BALL_WIDTH) * x, 15 + (30 + Ball.BALL_HEIGHT) * y,
-						colorRegion, getVertexBufferObjectManager());
-				bubbles.setBubbles(x, y, newBall);
-				scene.attachChild(bubbles.getBubble(x, y));
-				generatedBalls++;
-			}
-		}
-		if (gotRandColor) {
-			bubbles.detachedRandBalls();
-			gotRandColor = false;
-		}
-		stats.setScore(0);
-		howManyMoves = 0;
-		for (int i = 0; i < 8; i++)
-			isColorUsed[i] = 0;
-		TextureRegion.textStroke.setText("Score\n" + stats.getScore());
-		TextureRegion.textStrokeNextBalls.setText("Next marbles");
-		this.generateNextBalls(scene);
-	}
-
-	private void generateNextBalls(Scene scene) {
-		int generatedBalls = 0;
-		while (generatedBalls < BubblesGrid.HOW_MANY_NEW_BALLS) {
-			ITextureRegion colorRegion = Ball.getRandBall(bubbles);
-			boolean colorx = bubbles.getCurrentBallColor()  == 6 ? true : false;
-			if (colorx == true) {
-				Log.e("ss", "Jestem sztoska X.");
-			}
-			// always detach current, before generating new one so it 
-			// won't get at the top of the "stack"
-			if(this.nextBallsShow[generatedBalls] != null)
-				this.nextBallsShow[generatedBalls].detachSelf();
-			this.nextBallsShow[generatedBalls] = new Ball(colorx,
-					bubbles.getCurrentBallColor() , 0, 0, 850, 500 + (100 * generatedBalls),
-					colorRegion, getVertexBufferObjectManager());
-			scene.attachChild(this.nextBallsShow[generatedBalls++]);
-		}
-
-	}
 
 	
-
-	private void addGeneratedBalls(Scene scene) {
-		int generatedBalls = 0;
-		while (generatedBalls < BubblesGrid.HOW_MANY_NEW_BALLS) {
-			int x = MathUtilities.getRandInt(BubblesGrid.GRID_COLUMNS-1);
-			int y = MathUtilities.getRandInt(BubblesGrid.GRID_ROWS-1);
-			if (bubbles.isBubblesNull(x, y)) {
-				int colorIndex = this.nextBallsShow[generatedBalls]
-						.getBallColor();
-				ITextureRegion color = TextureRegion.getColor(colorIndex);
-				this.nextBalls[generatedBalls] = new Ball(
-						colorIndex == 6 ? true : false, colorIndex, 0, 0, 850,
-						420 + (100 * generatedBalls), color,
-						getVertexBufferObjectManager());
-				this.nextBalls[generatedBalls].setX(x);
-				this.nextBalls[generatedBalls].setY(y);
-				bubbles.setBubbles(x, y,this.nextBalls[generatedBalls]);
-				Point gridXY = gameGrid.getGridCoordinates(x, y, Ball.BALL_WIDTH, Ball.BALL_HEIGHT);
-				bubbles.getBubble(x, y).setPosition(gridXY.x + 15, gridXY.y + 15);
-				scene.attachChild(bubbles.getBubble(x, y));
-				generatedBalls++;
-				boolean checkResult = bubbles.checkPattern(
-						bubbles.getBubble(x,y).getBallColor(), stats);
-				if(checkResult == true) {
-					MusicHelper.scoreMusic.play();
-					stats.setComboAchievementCounter(1);
-				} else {
-					stats.resetCombo();
-				}
-				TextureRegion.textStroke.setText("Score\n" + stats.getScore());
-				if (colorIndex == 8)
-					bubbles.detachedRandBalls();
-
-			}
-		}
-	}
 	private AlertDialog createDialog(String title, String message, int icon) {
 		mEngine.stop();
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -267,7 +147,6 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog,
 									int id) {
-
 								mEngine.start();
 
 							}
@@ -280,12 +159,12 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		case Achievement.ACHIEVEMENT_MOVES:
 			return createDialog(
 					"Achievement unlocked!", 
-					"Congratulation, you have done at least 10 moves!", 
+					"Congratulations, you have done at least 10 moves!", 
 					R.drawable.star);
 		case Achievement.ACHIEVEMENT_COMBO:
 			return createDialog(
 					"Achievement unlocked!", 
-					"Congratulation, you have score 2 matches in a row!", 
+					"Congratulations, you have score 2 matches in a row!", 
 					R.drawable.clock);
 		case Achievement.ACHIEVEMENT_COLORS:
 			return createDialog(
@@ -413,9 +292,6 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 				final int YCurrentBall = (int) bubbleToMove.getY();
 
 				Point gridXY = gameGrid.getGridCoordinates(bubbleXY.x, bubbleXY.y,Ball.BALL_WIDTH, Ball.BALL_HEIGHT);
-				Point gridstartXY = gameGrid.getGridCoordinates(bubbleXY.x,
-						bubbleXY.y,Ball.BALL_WIDTH, Ball.BALL_HEIGHT);
-
 				final int[][] gridMap = gameGrid.getPathMap(bubbles);
 				NewPathFinder finder = new NewPathFinder(gridMap);
 				NewPathFinder.Point startPoint = finder.new Point(
@@ -438,7 +314,6 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 					}
 				}
 				howManyMoves++;
-				int lenght = nodes != null ? nodes.size() : 2;
 				if (path == null) {
 					MusicHelper.failMusic.play();
 					return;
@@ -490,8 +365,8 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 								}
 								TextureRegion.textStroke.setText("Score\n" + stats.getScore());
 								checkAchivements();
-								addGeneratedBalls(getEngine().getScene());
-								generateNextBalls(getEngine().getScene());
+								bubbles.addGeneratedBalls(getEngine().getScene(), MarbleGameActivity.this, gameGrid, stats);
+								bubbles.generateNextBalls(getEngine().getScene(), MarbleGameActivity.this);
 							}
 						});
 					}
@@ -505,13 +380,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 
 			} else {
 				TextureRegion.textStroke.setText("Final Score\n" + stats.getScore());
-					for (int i = 0; i < bubbles.HOW_MANY_NEW_BALLS; i++) {
-						if(this.nextBallsShow[i] != null) {
-							this.nextBallsShow[i].detachSelf();
-							this.nextBallsShow[i] = null;
-							TextureRegion.textStrokeNextBalls.setText("");
-						}
-					}
+					bubbles.detachNextBalls();
 					MusicHelper.gameOverMusic.play();
 			}
 

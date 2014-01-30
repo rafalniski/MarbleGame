@@ -21,50 +21,7 @@ public class Ball extends Sprite {
 	public void setX(float x) {
 		this.x = x;
 	}
-	public static ITextureRegion getRandBall(BubblesGrid bubbles) {
-		switch (MathUtilities.getRandInt(9)) {
-		case 0:
-			bubbles.setCurrentBallColor(0);
-			return TextureRegion.mBallGreen;
-		case 1:
-			bubbles.setCurrentBallColor(1);
-			return TextureRegion.mBallGrey;
-		case 2:
-			bubbles.setCurrentBallColor(2);
-			return TextureRegion.mBallBlue;
-		case 3:
-			bubbles.setCurrentBallColor(3);
-			return TextureRegion.mBallYellow;
-		case 4:
-			bubbles.setCurrentBallColor(4);
-			return TextureRegion.mBallPurple;
-		case 5:
-			bubbles.setCurrentBallColor(5);
-			return TextureRegion.mBallRed;
-		case 6:
-			if (MathUtilities.getRandInt(3) == 1) {
-				bubbles.setCurrentBallColor(6);
-				return TextureRegion.mBallX;
-			} else {
-				bubbles.setCurrentBallColor(3);
-				return TextureRegion.mBallYellow;
-			}
-		case 7:
-			bubbles.setCurrentBallColor(7);
-			return TextureRegion.mBallAll;
-		case 8:
-			if (MathUtilities.getRandInt(3) == 1) {
-				bubbles.setCurrentBallColor(8);
-				return TextureRegion.mBallRand;
-			} else {
-				bubbles.setCurrentBallColor(4);
-				return TextureRegion.mBallPurple;
-			}
-		default:
-			bubbles.setCurrentBallColor(5);
-			return TextureRegion.mBallRed;
-		}
-	}
+	
 	public float getY() {
 		return y;
 	}

@@ -86,28 +86,18 @@ public class TextureRegion {
 			
 		}
 	}
+	
 	public static void initSprites(MarbleGameActivity activity) {
-		Sprite backgroundSprite =  new Sprite(0, 0, TextureRegion.mBack, activity.getVertexBufferObjectManager());
-		spriteBackground = 	new SpriteBackground(backgroundSprite);
-		restartButton = 	new ButtonSprite(1150, 750, TextureRegion.mButton, activity.getVertexBufferObjectManager());
-		
-		
-		
-		textStroke = new Text(850, 20, mStrokeFont,
-				"Score\n" + "0", 3000,
-				activity.getVertexBufferObjectManager());
-		textStrokeAchievements = new Text(850, 190, mStrokeFont,
-				"Achievements\n", 3000, activity.getVertexBufferObjectManager());
-
-		textStrokeNextBalls = new Text(850, 380, mStrokeFont,
-				"Next marbles", 3000, activity.getVertexBufferObjectManager());
-		
-		marked = new Sprite(0, 0, TextureRegion.mMarked, activity.getVertexBufferObjectManager());
+		marked 						=  new Sprite(0, 0, TextureRegion.mMarked, activity.getVertexBufferObjectManager());
+		grid 						=  new Sprite(0, 0, TextureRegion.mGrid, activity.getVertexBufferObjectManager());
+		spriteBackground 			=  new SpriteBackground(new Sprite(0, 0, TextureRegion.mBack, activity.getVertexBufferObjectManager()));
+		restartButton 				=  new ButtonSprite(1150, 750, TextureRegion.mButton, activity.getVertexBufferObjectManager());
+		textStroke 					=  new Text(850, 20, mStrokeFont,"Score\n" + "0", 3000,activity.getVertexBufferObjectManager());
+		textStrokeAchievements 		=  new Text(850, 190, mStrokeFont,"Achievements\n", 3000, activity.getVertexBufferObjectManager());
+		textStrokeNextBalls 		=  new Text(850, 380, mStrokeFont,"Next marbles", 3000, activity.getVertexBufferObjectManager());
 		marked.setVisible(false);
-		grid = new Sprite(0, 0, TextureRegion.mGrid, activity.getVertexBufferObjectManager());
-		
-		
 	}
+
 	public static void initTextures(final MarbleGameActivity activity) {
 		try {
 			ITexture gridTexture = new BitmapTexture(activity.getTextureManager(),

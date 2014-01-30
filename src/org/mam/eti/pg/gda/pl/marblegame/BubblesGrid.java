@@ -1,11 +1,16 @@
 package org.mam.eti.pg.gda.pl.marblegame;
 
+import java.util.Currency;
+
 import javax.microedition.khronos.opengles.GL10;
 
 import org.andengine.entity.modifier.AlphaModifier;
 import org.andengine.entity.modifier.IEntityModifier;
+import org.andengine.entity.scene.Scene;
+import org.andengine.opengl.texture.region.ITextureRegion;
 import org.mam.eti.pg.gda.pl.marblegame.utils.MathUtilities;
 
+import android.graphics.Point;
 import android.util.Log;
 
 public class BubblesGrid {
@@ -16,9 +21,12 @@ public class BubblesGrid {
 	public static final int GRID_ROWS = 9;
 	public static final int GRID_COLUMNS = 9;
 	private int currentBallColor;
+	private Ball[] nextBalls, nextBallsShow;
 
 	public BubblesGrid() {
 		this.bubbles = new Ball[GRID_COLUMNS][GRID_ROWS];
+		this.nextBalls 		= new Ball[BubblesGrid.HOW_MANY_NEW_BALLS];
+		this.nextBallsShow 	= new Ball[BubblesGrid.HOW_MANY_NEW_BALLS];
 	}
 	public void setBubbles(int x, int y, Ball value) {
 		bubbles[x][y] = value;
@@ -34,6 +42,141 @@ public class BubblesGrid {
 	}
 	public boolean isBubblesNull(int x, int y) {
 		return bubbles[x][y] == null ? true : false;
+	}
+	public ITextureRegion getRandBall(Ball[][] bubbles) {
+		switch (MathUtilities.getRandInt(9)) {
+		case 0:
+			currentBallColor = 0;
+			return TextureRegion.mBallGreen;
+		case 1:
+			currentBallColor = 1;
+			return TextureRegion.mBallGrey;
+		case 2:
+			currentBallColor = 2;
+			return TextureRegion.mBallBlue;
+		case 3:
+			currentBallColor = 3;
+			return TextureRegion.mBallYellow;
+		case 4:
+			currentBallColor = 4;
+			return TextureRegion.mBallPurple;
+		case 5:
+			currentBallColor = 5;
+			return TextureRegion.mBallRed;
+		case 6:
+			if (MathUtilities.getRandInt(3) == 1) {
+				currentBallColor = 6;
+				return TextureRegion.mBallX;
+			} else {
+				currentBallColor = 3;
+				return TextureRegion.mBallYellow;
+			}
+		case 7:
+			currentBallColor = 7;
+			return TextureRegion.mBallAll;
+		case 8:
+			if (MathUtilities.getRandInt(3) == 1) {
+				currentBallColor = 8;
+				return TextureRegion.mBallRand;
+			} else {
+				currentBallColor = 4;
+				return TextureRegion.mBallPurple;
+			}
+		default:
+			currentBallColor = 5;
+			return TextureRegion.mBallRed;
+		}
+	}
+	public void generateBallsAtTheBeggining(Scene scene, MarbleGameActivity activity) {
+		int generatedBalls = 0;
+		boolean gotRandColor = false;
+		while (generatedBalls < BubblesGrid.BALLS_AT_THE_BEGGINING) {
+			int x = MathUtilities.getRandInt(8);
+			int y = MathUtilities.getRandInt(8);
+			if (bubbles[x][y] == null) {
+				ITextureRegion colorRegion = getRandBall(bubbles);
+				boolean colorx = currentBallColor == 6 || currentBallColor  == 8 ? true
+						: false;
+				if (currentBallColor  == 8) {
+					gotRandColor = true;
+				}
+				Ball newBall = new Ball(colorx, currentBallColor , x, y, 15
+						+ (30 + Ball.BALL_WIDTH) * x, 15 + (30 + Ball.BALL_HEIGHT) * y,
+						colorRegion, activity.getVertexBufferObjectManager());
+				bubbles[x][y] = newBall;
+				scene.attachChild(bubbles[x][y]);
+				generatedBalls++;
+			}
+		}
+		if (gotRandColor) {
+			detachedRandBalls();
+			gotRandColor = false;
+		}
+	}
+	
+	public void generateNextBalls(Scene scene, MarbleGameActivity activity) {
+		int generatedBalls = 0;
+		while (generatedBalls < BubblesGrid.HOW_MANY_NEW_BALLS) {
+			ITextureRegion colorRegion = getRandBall(bubbles);
+			boolean colorx = currentBallColor  == 6 ? true : false;
+			if (colorx == true) {
+				Log.e("ss", "Jestem sztoska X.");
+			}
+			// always detach current, before generating new one so it 
+			// won't get at the top of the "stack"
+			if(this.nextBallsShow[generatedBalls] != null)
+				this.nextBallsShow[generatedBalls].detachSelf();
+			this.nextBallsShow[generatedBalls] = new Ball(colorx,
+					currentBallColor , 0, 0, 850, 500 + (100 * generatedBalls),
+					colorRegion, activity.getVertexBufferObjectManager());
+			scene.attachChild(this.nextBallsShow[generatedBalls++]);
+		}
+
+	}
+	
+	public void addGeneratedBalls(Scene scene, MarbleGameActivity activity, Grid gameGrid, Achievement stats) {
+		int generatedBalls = 0;
+		while (generatedBalls < BubblesGrid.HOW_MANY_NEW_BALLS) {
+			int x = MathUtilities.getRandInt(BubblesGrid.GRID_COLUMNS-1);
+			int y = MathUtilities.getRandInt(BubblesGrid.GRID_ROWS-1);
+			if (bubbles[x][y] == null) {
+				int colorIndex = this.nextBallsShow[generatedBalls]
+						.getBallColor();
+				ITextureRegion color = TextureRegion.getColor(colorIndex);
+				this.nextBalls[generatedBalls] = new Ball(
+						colorIndex == 6 ? true : false, colorIndex, 0, 0, 850,
+						420 + (100 * generatedBalls), color,
+						activity.getVertexBufferObjectManager());
+				this.nextBalls[generatedBalls].setX(x);
+				this.nextBalls[generatedBalls].setY(y);
+				bubbles[x][y] = this.nextBalls[generatedBalls];
+				Point gridXY = gameGrid.getGridCoordinates(x, y, Ball.BALL_WIDTH, Ball.BALL_HEIGHT);
+				bubbles[x][y].setPosition(gridXY.x + 15, gridXY.y + 15);
+				scene.attachChild(bubbles[x][y]);
+				generatedBalls++;
+				boolean checkResult = checkPattern(
+						bubbles[x][y].getBallColor(), stats);
+				if(checkResult == true) {
+					MusicHelper.scoreMusic.play();
+					stats.setComboAchievementCounter(1);
+				} else {
+					stats.resetCombo();
+				}
+				TextureRegion.textStroke.setText("Score\n" + stats.getScore());
+				if (colorIndex == 8)
+					detachedRandBalls();
+
+			}
+		}
+	}
+	public void detachNextBalls() {
+		for (int i = 0; i < HOW_MANY_NEW_BALLS; i++) {
+			if(this.nextBallsShow[i] != null) {
+				this.nextBallsShow[i].detachSelf();
+				this.nextBallsShow[i] = null;
+				TextureRegion.textStrokeNextBalls.setText("");
+			}
+		}
 	}
 	
 	public void detachedRandBalls() {
