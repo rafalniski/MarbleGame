@@ -43,8 +43,6 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 	private Sprite starS, clockS, starYS;
 	
 	/* Helper booleans and counters */
-	private static int isColorUsed[] = new int[8];
-	private int howManyMoves = 0;
 	private boolean achiveColors, achiveMoves, achiveCombo;
 
 	@Override
@@ -91,9 +89,9 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 	private void initScene() {
 		bubbles.generateBallsAtTheBeggining(scene,this);
 		stats.setScore(0);
-		howManyMoves = 0;
+		stats.resetMoves();
 		for (int i = 0; i < 8; i++)
-			isColorUsed[i] = 0;
+			stats.setIsColorUsed(i, 0);
 		TextureRegion.textStroke.setText("Score\n" + stats.getScore());
 		TextureRegion.textStrokeNextBalls.setText("Next marbles");
 		bubbles.generateNextBalls(scene, this);
@@ -206,7 +204,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		SharedPreferences prefs = getSharedPreferences("myPrefs", MODE_PRIVATE);
 		Editor prefsEditor = prefs.edit();
 
-		if (howManyMoves == 10 && achiveMoves != true) {
+		if (stats.getMovesAchievementCounter() == Achievement.ACHIEVEMENT_MOVES_NUMBER_OF_MOVES && achiveMoves != true) {
 			prefsEditor.putBoolean("achiveMoves", true);
 			prefsEditor.apply();
 			achiveMoves = true;
@@ -236,7 +234,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		}
 		boolean areAllUsed = true;
 		for (int i = 0; i < 6; i++) {
-			if (isColorUsed[i] != 1)
+			if (stats.getIsColorUsed(i) != 1)
 				areAllUsed = false;
 		}
 		if (areAllUsed && !achiveColors) {
@@ -317,9 +315,9 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 					return;
 				}
 				// Increment moves achievement counter
-				howManyMoves++;
+				stats.setMovesAchievementCounter(1);
 				// Increment color achievement counter
-				isColorUsed[bubbleToMove.getBallColor()] = 1;
+				stats.setIsColorUsed(bubbleToMove.getBallColor(),1);
 				
 				// Move the ball
 				PathModifier mPathModifier = new PathModifier(path.getLength() / 800, path);
