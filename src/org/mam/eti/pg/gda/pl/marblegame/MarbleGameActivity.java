@@ -276,6 +276,8 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 			if (TextureRegion.marked.isVisible() == false) {
 				TextureRegion.marked.setPosition(gridXY.x, gridXY.y);
 				TextureRegion.marked.setVisible(true);
+			} else {
+				TextureRegion.marked.setPosition(gridXY.x, gridXY.y);
 			}
 		// We clicked X bubble - nothing to do	
 		} else if (bubbleToMove != null && bubbleToMove.isX() == true) {
