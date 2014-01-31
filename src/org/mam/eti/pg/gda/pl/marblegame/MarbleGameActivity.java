@@ -280,7 +280,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		// We clicked X bubble - nothing to do	
 		} else if (bubbleToMove != null && bubbleToMove.isX() == true) {
 		
-		// We clicked empty field and there was no bubble prefared to be moved - do nothing
+		// We clicked empty field and there was no bubble prepared to be moved - do nothing
 		} else if (TextureRegion.marked.isVisible() == false) {
 		
 		// We clicked empty filed, there is bubble to move and we still have free space in a grid. So, move it there:)
