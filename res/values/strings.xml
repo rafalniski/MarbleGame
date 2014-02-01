@@ -3,5 +3,6 @@
 
     <string name="hello">Hello World, MarbleGameActivity!</string>
     <string name="app_name">MarbleGame</string>
+    <string name="app_id">1049848541066</string>
 
 </resources>
