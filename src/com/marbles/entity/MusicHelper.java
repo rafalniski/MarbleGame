@@ -1,10 +1,12 @@
-package com.marbles;
+package com.marbles.entity;
 
 import java.io.IOException;
 
 import org.andengine.audio.music.Music;
 import org.andengine.audio.music.MusicFactory;
 import org.andengine.engine.Engine;
+
+import com.marbles.activity.MarbleGameActivity;
  
 public class MusicHelper {
 	public static Music moveMusic, scoreMusic, failMusic, gameOverMusic;

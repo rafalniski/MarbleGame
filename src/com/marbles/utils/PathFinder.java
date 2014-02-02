@@ -1,4 +1,4 @@
-package com.marbles;
+package com.marbles.utils;
 
 import java.util.LinkedList;
 import java.util.List;

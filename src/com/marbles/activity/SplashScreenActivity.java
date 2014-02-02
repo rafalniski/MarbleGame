@@ -1,4 +1,4 @@
-package com.marbles;
+package com.marbles.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,7 +11,7 @@ import com.marblesheaven.R;
 
 public class SplashScreenActivity extends BaseGameActivity implements View.OnClickListener {
 
-	private ImageView new_game, settings, quit;
+	private ImageView new_game, settings, quit, leaderboard;
 	private GamesClient.Builder mGamesClient;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +22,7 @@ public class SplashScreenActivity extends BaseGameActivity implements View.OnCli
 		mGamesClient.setShowConnectingPopup(false);
 		new_game = (ImageView) findViewById(R.id.new_game);
 		settings = (ImageView) findViewById(R.id.settings);
+		leaderboard = (ImageView) findViewById(R.id.leaderboard);
 		findViewById(R.id.sign_in_button).setOnClickListener(this);
 	    findViewById(R.id.sign_out_button).setOnClickListener(this);  
 		quit = (ImageView) findViewById(R.id.quit);
@@ -34,7 +35,16 @@ public class SplashScreenActivity extends BaseGameActivity implements View.OnCli
 				
 			}
 		});
-		
+		leaderboard.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				startActivityForResult(getGamesClient().getLeaderboardIntent(
+						getResources().getString(R.string.leaderboard_high_scores)),
+						3);
+				
+			}
+		});
 		settings.setOnClickListener(new View.OnClickListener() {
 			
 			@Override

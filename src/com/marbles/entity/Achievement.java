@@ -1,4 +1,4 @@
-package com.marbles;
+package com.marbles.entity;
 
 import com.google.example.games.basegameutils.GameHelper.GameHelperListener;
 

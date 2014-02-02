@@ -1,4 +1,4 @@
-package com.marbles;
+package com.marbles.activity;
 
 
 
@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -32,8 +33,17 @@ import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallback
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.games.GamesClient;
 import com.google.example.games.basegameutils.GameHelper.GameHelperListener;
-import com.marbles.PathFinder.Node;
+import com.marbles.entity.Achievement;
+import com.marbles.entity.Ball;
+import com.marbles.entity.BubblesGrid;
+import com.marbles.entity.Grid;
+import com.marbles.entity.MusicHelper;
+import com.marbles.entity.TextureRegion;
+import com.marbles.utils.NewPathFinder;
+import com.marbles.utils.PathFinder;
+import com.marbles.utils.PathFinder.Node;
 import com.marblesheaven.R;
+
 
 public class MarbleGameActivity extends SimpleBaseGameActivity implements
 		IOnSceneTouchListener, GameHelperListener, OnConnectionFailedListener, ConnectionCallbacks {
@@ -389,6 +399,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 								} else {
 									stats.resetCombo();
 								}
+								Log.i("combo", " "+ stats.getComboAchievementCounter());
 								TextureRegion.textStroke.setText("Score\n" + stats.getScore());
 								checkAchivements();
 								bubbles.addGeneratedBalls(getEngine().getScene(), MarbleGameActivity.this, gameGrid, stats);
@@ -405,6 +416,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 			// No free space in a grid - end the game
 			} else {
 					TextureRegion.textStroke.setText("Final Score\n" + stats.getScore());
+					mGames.submitScore(getResources().getString(R.string.leaderboard_high_scores), stats.getScore());
 					bubbles.detachNextBalls();
 					MusicHelper.gameOverMusic.play();
 			}

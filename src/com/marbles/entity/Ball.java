@@ -1,4 +1,4 @@
-package com.marbles;
+package com.marbles.entity;
 
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.region.ITextureRegion;

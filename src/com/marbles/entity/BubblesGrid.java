@@ -1,4 +1,4 @@
-package com.marbles;
+package com.marbles.entity;
 
 import java.util.Currency;
 
@@ -9,7 +9,9 @@ import org.andengine.entity.modifier.IEntityModifier;
 import org.andengine.entity.scene.Scene;
 import org.andengine.opengl.texture.region.ITextureRegion;
 
+import com.marbles.activity.MarbleGameActivity;
 import com.marbles.utils.MathUtilities;
+
 
 import android.graphics.Point;
 import android.util.Log;
@@ -160,8 +162,6 @@ public class BubblesGrid {
 				if(checkResult == true) {
 					MusicHelper.scoreMusic.play();
 					stats.setComboAchievementCounter(1);
-				} else {
-					stats.resetCombo();
 				}
 				TextureRegion.textStroke.setText("Score\n" + stats.getScore());
 				if (colorIndex == 8)
@@ -212,7 +212,6 @@ public class BubblesGrid {
 	
 	
 	public boolean checkPattern(int ballColor, Achievement stats) {
-		Log.i("combo", "combo counter = "+ stats.getComboAchievementCounter());
 		// wyszukiwanie w kolumnach
 		boolean czyZnaleziono = false;
 		for (int h = 0; h < GRID_COLUMNS; h++) {

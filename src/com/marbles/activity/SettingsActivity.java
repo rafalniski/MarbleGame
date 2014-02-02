@@ -1,4 +1,4 @@
-package com.marbles;
+package com.marbles.activity;
 
 
 

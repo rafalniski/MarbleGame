@@ -1,4 +1,3 @@
 eclipse.preferences.version=1
-encoding//src/com/marbles/AStar.java=UTF-8
-encoding//src/com/marbles/BubblesGrid.java=UTF-8
-encoding//src/com/marbles/MarbleGameActivity.java=UTF-8
+encoding//src/com/marbles/activity/MarbleGameActivity.java=UTF-8
+encoding//src/com/marbles/entity/BubblesGrid.java=UTF-8

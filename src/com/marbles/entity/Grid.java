@@ -1,4 +1,5 @@
-package com.marbles;
+package com.marbles.entity;
+
 
 import android.graphics.Point;
 import android.util.Log;

@@ -1,4 +1,4 @@
-package com.marbles;
+package com.marbles.entity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +16,8 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.color.Color;
+
+import com.marbles.activity.MarbleGameActivity;
 
 import android.graphics.Typeface;
 /*

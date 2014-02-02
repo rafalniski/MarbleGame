@@ -1,10 +1,10 @@
-package com.marbles;
+package com.marbles.utils;
 
 import java.security.acl.LastOwnerException;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.marbles.PathFinder.Node;
+import com.marbles.utils.PathFinder.Node;
 
 import android.util.Log;
 
