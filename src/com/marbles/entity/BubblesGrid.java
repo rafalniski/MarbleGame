@@ -218,16 +218,15 @@ public class BubblesGrid {
 			for (int i = 0; i < GRID_ROWS - 5 + 1; i++) {
 				int j = 1;
 				if (bubbles[h][i + j - 1] != null) {
-					while (j <= 5
-							&& bubbles[h][i + j - 1] != null
-							&& (bubbles[h][i + j - 1].getBallColor() == ballColor || bubbles[h][i
-									+ j - 1].getBallColor() == 7)) {
+					while (j <= 5 && bubbles[h][i + j - 1] != null && (bubbles[h][i + j - 1].getBallColor() == ballColor ||
+							bubbles[h][i + j - 1].getBallColor() == 7)) {
 						j++;
 						if (j == 6) {
+							j--;
 							Log.w("pattern",
-									"Hurra! Znaleziono 5 kulek - wiersz: " + h
-											+ " kolumna: " + i + "\n");
-							
+									"5 kulek - wiersz: " + h
+											+ " kolumna: " + i + "\n" + "Kolor: " + ballColor + "\n" + "Ostatnia kulka kolor: " +bubbles[h][i + j - 1].getBallColor());
+							j=3;
 							for (int k = 0; k < 5; k++) {
 								bubbles[h][i].setBlendFunction(
 										GL10.GL_SRC_ALPHA,
@@ -260,9 +259,11 @@ public class BubblesGrid {
 									+ j - 1][h].getBallColor() == 7)) {
 						j++;
 						if (j == 6) {
+							j--;
 							Log.w("pattern",
-									"Hurra! Znaleziono 5 kulek - wiersz: " + h
-											+ " kolumna: " + i + "\n");
+									"5 kulek - wiersz: " + h
+											+ " kolumna: " + i + "\n" + "Kolor: " + ballColor + "\n" + "Ostatnia kulka kolor: " +bubbles[i + j - 1][h].getBallColor());
+							j=3;
 							for (int k = 0; k < 5; k++) {
 								bubbles[i][h].setBlendFunction(
 										GL10.GL_SRC_ALPHA,
@@ -295,6 +296,10 @@ public class BubblesGrid {
 									+ j - 1][h + j - 1].getBallColor() == 7)) {
 						j++;
 						if (j == 6) {
+							j--;
+							Log.w("pattern",
+									"5 kulek - wiersz: " + h + " kolumna: " + i + "\n" + "Kolor: " + ballColor + "\n" + "Ostatnia kulka kolor: " +bubbles[i + j - 1][h + j - 1].getBallColor());
+							j=3;
 							for (int k = 0; k < 5; k++) {
 								bubbles[i][h].detachSelf();
 								bubbles[i][h] = null;
@@ -324,7 +329,12 @@ public class BubblesGrid {
 						j++;
 						w--;
 						if (w == -6) {
-							
+							j--;
+							w++;
+							Log.w("pattern",
+									"5 kulek - wiersz: " + h
+											+ " kolumna: " + i + "\n" + "Kolor: " + ballColor + "\n" + "Ostatnia kulka kolor: " +bubbles[i + w + 1][h + j - 1].getBallColor());
+							j=3;
 							for (int k = 0; k < 5; k++) {
 								bubbles[i][h].detachSelf();
 								bubbles[i][h] = null;

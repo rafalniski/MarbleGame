@@ -27,6 +27,7 @@ import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
@@ -40,7 +41,6 @@ import com.marbles.entity.Grid;
 import com.marbles.entity.MusicHelper;
 import com.marbles.entity.TextureRegion;
 import com.marbles.utils.NewPathFinder;
-import com.marbles.utils.PathFinder;
 import com.marbles.utils.PathFinder.Node;
 import com.marblesheaven.R;
 
@@ -66,6 +66,7 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 	
 	/* Helper booleans and counters */
 	private boolean achiveColors, achiveMoves, achiveCombo;
+	private static long back_pressed;
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -424,11 +425,40 @@ public class MarbleGameActivity extends SimpleBaseGameActivity implements
 	}
 
 	@Override
+	public void onBackPressed()
+	{
+	    if (back_pressed + 2000 > System.currentTimeMillis()) {
+	    	super.onBackPressed();
+	    } else  {
+	    	Toast.makeText(getBaseContext(), "Press once again to exit!", Toast.LENGTH_SHORT).show();
+	    }
+	    back_pressed = System.currentTimeMillis();
+	}
+
+	@Override
 	public void onSignInFailed() {
 		// TODO Auto-generated method stub
 		
 	}
-
+	@Override
+	public synchronized void onPauseGame() {
+		// TODO Auto-generated method stub
+		super.onPauseGame();
+	}
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+	}
+	@Override
+	public synchronized void onResumeGame() {
+		// TODO Auto-generated method stub
+		super.onResumeGame();
+	}
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+	}
 	@Override
 	public void onSignInSucceeded() {
 		mGames.connect();
